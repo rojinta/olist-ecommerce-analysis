@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Olist Marketplace Analysis</title>
+<meta name="description" content="An analysis of 99,000 Olist marketplace orders: late deliveries are rare, cost two review stars, and few customers order again.">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+.ol { --serif: 'Instrument Serif', 'Times New Roman', serif; --sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif; --mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  --bg: #ffffff; --bg2: #f1f4f9; --ink: #141a2b; --mute: #5a6580; --rule: #dfe4ee; --blue: #1f5fd1; --deep: #17408f; --amber: #b86500; --dim: #aab6cc;
+  color-scheme: light; background: var(--bg); color: var(--ink); font-family: var(--sans); line-height: 1.5; border-radius: 14px; box-shadow: 0 1px 0 rgba(20, 26, 43, .06), 0 12px 40px rgba(20, 26, 43, .07);
+  padding: clamp(1rem, 3.5vw, 3rem); display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(2rem, 4vw, 3rem); max-width: 76rem; margin-inline: auto; }
+.ol *, .ol *::before, .ol *::after { box-sizing: border-box; }
+.ol h1, .ol h2, .ol h3, .ol p { margin: 0; }
+@media (min-width: 62rem) { .ol { grid-template-columns: 10rem minmax(0, 1fr); column-gap: 3.5rem; } }
+.ol .rail { align-self: start; }
+@media (min-width: 62rem) { .ol .rail { position: sticky; top: 1.5rem; } }
+.ol .brand { font-family: var(--mono); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--mute); line-height: 1.6; }
+.ol .brand b { color: var(--amber); font-weight: 500; }
+.ol nav { display: flex; flex-wrap: wrap; gap: .35rem 1rem; margin-top: 1rem; }
+@media (min-width: 62rem) { .ol nav { flex-direction: column; flex-wrap: nowrap; gap: .1rem; margin-top: 1.6rem; border-left: 1px solid var(--rule); } }
+.ol nav a { color: var(--mute); text-decoration: none; font-size: .84rem; cursor: pointer; padding: .3rem 0 .3rem 0; }
+@media (min-width: 62rem) { .ol nav a { padding-left: .9rem; margin-left: -1px; border-left: 2px solid transparent; } }
+.ol nav a:hover, .ol nav a:focus-visible { color: var(--ink); outline: none; }
+.ol nav a.on { color: var(--ink); font-weight: 600; }
+@media (min-width: 62rem) { .ol nav a.on { border-left-color: var(--amber); } }
+.ol main { display: grid; gap: clamp(3.2rem, 7vw, 5.5rem); min-width: 0; }
+
+.ol .eyebrow { font-family: var(--mono); font-size: .72rem; letter-spacing: .09em; text-transform: uppercase; color: var(--mute); }
+.ol h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.6rem, 6.4vw, 4.9rem); line-height: .98; letter-spacing: -.015em; text-wrap: balance; margin-top: .9rem; max-width: 14em; }
+.ol h1 em { color: #d27a00; font-style: italic; }
+.ol .lead { font-size: 1.1rem; line-height: 1.6; color: #3a4560; max-width: 40rem; margin-top: 1.3rem; }
+.ol .hl { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.ol .amb { color: var(--amber); }
+.ol .blu { color: var(--blue); }
+
+.ol .ledger { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); margin-top: 2.2rem; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.ol .cell { padding: 1.1rem 1.2rem 1.2rem 0; display: grid; gap: .15rem; align-content: start; }
+@media (min-width: 40rem) { .ol .cell + .cell { border-left: 1px solid var(--rule); padding-left: 1.2rem; } }
+.ol .cell .k-l { font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--mute); }
+.ol .cell .num { font-family: var(--serif); font-size: clamp(2.4rem, 4.4vw, 3.3rem); line-height: 1; font-variant-numeric: lining-nums tabular-nums; min-height: 2.6rem; }
+.ol .cell .num.a { color: #d27a00; }
+.ol .cell .num.b { color: var(--blue); }
+.ol .cell .k-n { font-size: .78rem; color: var(--mute); }
+
+.ol section { display: grid; gap: 1.8rem; scroll-margin-top: 1.5rem; min-width: 0; }
+.ol .sec-head { display: grid; gap: .8rem; max-width: 44rem; }
+.ol h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.04; letter-spacing: -.01em; text-wrap: balance; }
+.ol .intro { color: #46526d; font-size: 1.02rem; line-height: 1.6; }
+.ol .fig { display: grid; gap: .7rem; border-top: 1px solid var(--rule); padding-top: 1rem; min-width: 0; align-content: start; }
+.ol .fig h3 { font-size: .95rem; font-weight: 700; letter-spacing: .005em; }
+.ol .fig .note { font-size: .82rem; color: var(--mute); line-height: 1.55; max-width: 46rem; }
+.ol .pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 2.2rem 2.4rem; }
+.ol .chart { position: relative; min-width: 0; }
+.ol .chart.dash-skeleton { min-height: 12rem; }
+.ol svg.fig-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.ol svg text { font-family: var(--sans); }
+.ol .head-row { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; justify-content: space-between; }
+
+.ol details.fold { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+.ol details.fold > summary { cursor: pointer; font-family: var(--mono); font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); padding: .9rem 0; }
+.ol details.fold > summary:hover { color: var(--ink); }
+.ol details.fold .inner { display: grid; gap: .8rem; padding-bottom: 1.2rem; }
+.ol .scroll { overflow: auto; max-height: 24rem; border: 1px solid var(--rule); border-radius: 8px; }
+.ol table { border-collapse: collapse; width: 100%; font-size: .84rem; font-variant-numeric: tabular-nums; }
+.ol th, .ol td { padding: .5rem .8rem; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--rule); color: var(--ink); }
+.ol th:first-child, .ol td:first-child { text-align: left; }
+.ol thead th { position: sticky; top: 0; background: var(--bg2); font-family: var(--mono); font-size: .68rem; letter-spacing: .05em; text-transform: uppercase; font-weight: 500; color: var(--mute); }
+.ol tbody tr:last-child td { border-bottom: 0; }
+
+.ol .tip { position: absolute; z-index: 5; pointer-events: none; background: #141a2b; color: #ffffff; border-radius: 6px; padding: .4rem .65rem; font-size: .76rem; line-height: 1.45; max-width: 17rem; font-variant-numeric: tabular-nums; box-shadow: 0 6px 20px rgba(20, 26, 43, .25); }
+.ol .tip .tip-t { font-weight: 700; }
+.ol .fail { min-height: 4rem; display: flex; align-items: center; justify-content: center; gap: .4rem; color: var(--mute); font-size: .8rem; }
+.ol .fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--amber); }
+.ol [data-dash-source-state=empty] { color: transparent; }
+.ol [data-dash-source-state=refreshing] { opacity: .5; transition: opacity .3s; }
+.ol .method ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 0; }
+.ol .method li { display: grid; grid-template-columns: 11rem 1fr; gap: 1.4rem; padding: .85rem 0; border-top: 1px solid var(--rule); font-size: .9rem; line-height: 1.55; color: #3a4560; }
+@media (max-width: 40rem) { .ol .method li { grid-template-columns: 1fr; gap: .2rem; } }
+.ol .method li strong { font-weight: 700; color: var(--ink); }
+.ol footer { font-size: .78rem; color: var(--mute); line-height: 1.6; display: grid; gap: .3rem; border-top: 1px solid var(--rule); padding-top: 1rem; grid-column: 1 / -1; }
+
+
+html { background: #e9edf4; }
+body { margin: 0; padding: clamp(.5rem, 2vw, 1.5rem); background: #e9edf4; }
+.ol .dash-skeleton { background: linear-gradient(90deg, #eef1f6 25%, #f7f9fc 50%, #eef1f6 75%); background-size: 200% 100%; animation: sk 1.4s ease-in-out infinite; border-radius: 6px; color: transparent; }
+@keyframes sk { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .ol .dash-skeleton { animation: none; } }
+</style>
+</head>
+<body>
+<div class="ol">
+  <aside class="rail">
+    <p class="brand"><b>Olist</b><br>Brazilian<br>e-commerce<br>2017 to 2018</p>
+    <nav aria-label="Sections">
+      <a href="#sales" data-go="sales">What sells</a>
+      <a href="#delivery" data-go="delivery">Delivery</a>
+      <a href="#reviews" data-go="reviews">Late and reviews</a>
+      <a href="#returns" data-go="returns">Second orders</a>
+      <a href="#sellers" data-go="sellers">Sellers</a>
+      <a href="#method" data-go="method">How to read this</a>
+    </nav>
+  </aside>
+
+  <main>
+    <header id="top">
+      <p class="eyebrow"><span data-draw="val" data-source="headline" data-field="orders_placed" data-fmt="int">—</span> orders, <span data-draw="val" data-source="headline" data-field="window_label" data-fmt="text">—</span></p>
+      <h1>A late parcel costs two stars, and <em>most customers never order twice</em></h1>
+      <p class="lead">Olist's orders almost always beat the promised date. When one does not, the customer rates it <span class="hl amb" data-draw="val" data-source="headline" data-field="score_late" data-fmt="score">—</span> stars on average, against <span class="hl blu" data-draw="val" data-source="headline" data-field="score_ontime" data-fmt="score">—</span> for the rest. Few customers come back either way, so the first order is most of the business.</p>
+      <div class="ledger">
+        <div class="cell"><span class="k-l">Revenue</span><span class="num dash-skeleton" data-draw="val" data-source="headline" data-field="revenue_brl" data-fmt="brl">—</span><span class="k-n">item prices on delivered orders, reais</span></div>
+        <div class="cell"><span class="k-l">Typical delivery</span><span class="num b dash-skeleton" data-draw="val" data-source="headline" data-field="median_delivery_days" data-fmt="daysS">—</span><span class="k-n">median, purchase to doorstep</span></div>
+        <div class="cell"><span class="k-l">Arrived late</span><span class="num a dash-skeleton" data-draw="val" data-source="headline" data-field="pct_late" data-fmt="pct">—</span><span class="k-n">after the estimated date</span></div>
+        <div class="cell"><span class="k-l">Ordered again</span><span class="num a dash-skeleton" data-draw="val" data-source="headline" data-field="pct_came_back" data-fmt="pct">—</span><span class="k-n">within 180 days of a first order</span></div>
+      </div>
+    </header>
+
+    <section id="sales" aria-labelledby="h-sales">
+      <div class="sec-head">
+        <h2 id="h-sales">Growth through 2017, then a plateau</h2>
+        <p class="intro">Orders climbed through 2017, peaked in November, and stayed roughly level through 2018. The ten biggest of <span class="hl" data-draw="val" data-source="headline" data-field="n_categories" data-fmt="int">—</span> categories bring in <span class="hl" data-draw="val" data-source="headline" data-field="top10_categories_pct" data-fmt="pct">—</span> of revenue.</p>
+      </div>
+      <div class="fig">
+        <h3>Orders per month</h3>
+        <p class="note">Every order placed that month, including ones that were later canceled or never delivered. September to December 2016 and September to October 2018 are left out because the data holds only a few hundred orders for them.</p>
+        <div class="chart dash-skeleton" id="chart-month" data-draw="monthLine" data-source="monthly"></div>
+      </div>
+      <div class="fig">
+        <h3>Revenue by category</h3>
+        <p class="note">Each block is a category, sized by revenue on delivered orders before shipping. Blue blocks are delivered late less often, amber blocks more often. Categories with at least 300 delivered orders are shown. Hover a block to see its revenue, number of orders, late share and average review score, from 1 to 5 stars.</p>
+        <div class="chart dash-skeleton" id="chart-tree" data-draw="catTree" data-source="categories"></div>
+      </div>
+      <details class="fold">
+        <summary>See the data: categories</summary>
+        <div class="inner">
+          <p class="note">Late is the share of the category's delivered orders that arrived after the estimated date. Score is the average review, from 1 to 5 stars. Shipping fee is the delivery charge the customer pays on top of the item price, shown as a share of that price.</p>
+          <div class="scroll">
+            <table data-source="categories" data-row-key="category" id="table-cat">
+              <thead><tr>
+                <th data-field="category">Category</th>
+                <th data-field="orders">Orders</th>
+                <th data-field="revenue_brl">Revenue</th>
+                <th data-field="pct_of_revenue">Share of revenue</th>
+                <th data-field="pct_late">Late</th>
+                <th data-field="avg_score">Score</th>
+                <th data-field="freight_pct_of_price">Shipping fee vs price</th>
+              </tr></thead>
+              <tbody data-draw="catBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section id="delivery" aria-labelledby="h-delivery">
+      <div class="sec-head">
+        <h2 id="h-delivery">The promise is padded, so late stands out</h2>
+        <p class="intro">The typical order is promised in <span class="hl" data-draw="val" data-source="headline" data-field="median_promised_days" data-fmt="days">—</span> and arrives in <span class="hl" data-draw="val" data-source="headline" data-field="median_delivery_days" data-fmt="days">—</span>. <span class="hl" data-draw="val" data-source="headline" data-field="pct_week_early" data-fmt="pct">—</span> arrive at least a week early.</p>
+      </div>
+      <div class="fig">
+        <h3>Delivered orders against the estimated date</h3>
+        <p class="note">Zero is the estimated day. The ends of the chart group everything beyond 30 days.</p>
+        <div class="chart dash-skeleton" id="chart-days" data-draw="daysArea" data-source="days_vs_estimate"></div>
+      </div>
+      <div class="fig">
+        <h3>Where delivery is slow</h3>
+        <p class="note">One tile per customer state with at least 500 delivered orders, placed roughly where the state sits on the map. Color is the share of orders that arrived late. The number is the median days from purchase to delivery. Hover for details.</p>
+        <div class="chart dash-skeleton" id="chart-states" data-draw="stateTiles" data-source="states"></div>
+      </div>
+    </section>
+
+    <section id="reviews" aria-labelledby="h-reviews">
+      <div class="sec-head">
+        <h2 id="h-reviews">Past the promised day, scores fall off a cliff</h2>
+        <p class="intro">Among on-time orders, <span class="hl" data-draw="val" data-source="headline" data-field="pct_one_star_ontime" data-fmt="pct">—</span> get a one-star review. Among late orders, <span class="hl amb" data-draw="val" data-source="headline" data-field="pct_one_star_late" data-fmt="pct">—</span> do. <span class="hl" data-draw="val" data-source="headline" data-field="pct_with_review" data-fmt="pct">—</span> of delivered orders have a review.</p>
+      </div>
+      <div class="fig">
+        <h3>Average review score by how early or late the order was</h3>
+        <p class="note">Scores slip a little as orders approach the estimated day, then drop once an order is late. They are lowest after a week.</p>
+        <div class="chart dash-skeleton" id="chart-lateness" data-draw="latenessLine" data-source="review_by_lateness"></div>
+      </div>
+      <div class="fig">
+        <h3>The same drop inside every large category</h3>
+        <p class="note">Each line is one category, with at least 3,000 reviewed orders. It joins the category's average review for on-time orders (left) to its average for late orders (right). If late orders only looked bad because they cluster in categories that get low reviews anyway, the lines would be flat. Instead every one falls steeply. This shows that late goes with low scores, not that lateness alone causes them.</p>
+        <div class="chart dash-skeleton" id="chart-gap" data-draw="gapSlope" data-source="late_effect"></div>
+      </div>
+    </section>
+
+    <section id="returns" aria-labelledby="h-returns">
+      <div class="sec-head">
+        <h2 id="h-returns">Most customers never place a second order</h2>
+        <p class="intro">Of <span class="hl" data-draw="val" data-source="headline" data-field="retention_customers" data-fmt="int">—</span> customers whose first order is at least 180 days before the end of the data, <span class="hl" data-draw="val" data-source="headline" data-field="came_back" data-fmt="int">—</span> ordered again on a later day within 180 days. That is <span class="hl amb" data-draw="val" data-source="headline" data-field="pct_came_back" data-fmt="pct">—</span>.</p>
+      </div>
+      <div class="pair">
+        <div class="fig">
+          <h3>Return rate by month of first order</h3>
+          <p class="note">Share of each month's new customers who ordered again within 180 days. The dashed line is the overall rate. No month stands out, including November 2017.</p>
+          <div class="chart dash-skeleton" id="chart-cohort" data-draw="cohortLine" data-source="retention_cohorts headline"></div>
+        </div>
+        <div class="fig">
+          <h3>Does a bad first order lower the return rate?</h3>
+          <p class="note">Return rate by the first order's review and delivery. Late deliveries with bad reviews go with the lowest rate, but every group is within about one point of the others, and the three-star late group has few customers, so its rate is noisy. Rates are low everywhere, so a bad first delivery does not explain why most customers never come back.</p>
+          <div class="chart dash-skeleton" id="chart-first" data-draw="firstBars" data-source="retention_first"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sellers" aria-labelledby="h-sellers">
+      <div class="sec-head">
+        <h2 id="h-sellers">A few sellers carry the marketplace</h2>
+        <p class="intro">The top 1% of the <span class="hl" data-draw="val" data-source="headline" data-field="sellers" data-fmt="int">—</span> sellers hold <span class="hl" data-draw="val" data-source="headline" data-field="top_1pct_sellers_pct" data-fmt="pct">—</span> of revenue and the top 10% hold <span class="hl" data-draw="val" data-source="headline" data-field="top_10pct_sellers_pct" data-fmt="pct">—</span>. Among sellers with enough orders to compare, a higher late share goes with a lower score.</p>
+      </div>
+      <div class="pair">
+        <div class="fig">
+          <h3>Revenue by group of sellers</h3>
+          <p class="note">Sellers are ranked by revenue and split into ten equal groups. Each column is the share of all revenue that group earns.</p>
+          <div class="chart dash-skeleton" id="chart-deciles" data-draw="deciles" data-source="seller_curve"></div>
+        </div>
+        <div class="fig">
+          <h3>Sellers who deliver late score lower</h3>
+          <p class="note">Sellers with at least 30 delivered orders, grouped by the share of their orders that arrived late. Each bar is the average of those sellers' scores. The groups with the most late deliveries have the fewest sellers, so read them loosely. The correlation between sellers' late share and their average score is <span class="hl" data-draw="val" data-source="headline" data-field="corr_late_score" data-fmt="score">—</span>. Correlation measures how closely two things move together, from −1 to 1. Here it means sellers who deliver late more often tend to have lower scores, but the link is far from exact.</p>
+          <div class="chart dash-skeleton" id="chart-bands" data-draw="lateBands" data-source="sellers"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="method" aria-labelledby="h-method">
+      <div class="sec-head"><h2 id="h-method">How to read this</h2></div>
+      <div class="method">
+        <ul>
+          <li><strong>Window</strong><span>Orders placed from January 2017 to August 2018. The data runs from September 2016 to October 2018, but the first four and last two months hold only a few hundred orders, so they are left out.</span></li>
+          <li><strong>Late</strong><span>An order is late if it was delivered on a later calendar day than the estimated delivery date. The estimate is a date with no time of day, while the actual delivery has a date and a time. Comparing exact moments would count an order delivered at 3 pm on the estimated day as late, which is unfair. That method would count <span class="hl" data-draw="val" data-source="headline" data-field="late_by_timestamp" data-fmt="int">—</span> orders as late instead of <span class="hl" data-draw="val" data-source="headline" data-field="late_orders" data-fmt="int">—</span>.</span></li>
+          <li><strong>Delivered only</strong><span>Delivery times, late shares, reviews and revenue use delivered orders. <span class="hl" data-draw="val" data-source="headline" data-field="pct_canceled_or_unavailable" data-fmt="pct">—</span> of orders were canceled or unavailable and are not in those figures.</span></li>
+          <li><strong>One review per order</strong><span>A few orders have two or three reviews. The most recent one is used.</span></li>
+          <li><strong>A customer is a person</strong><span>The marketplace gives every order a new customer ID, so people are identified by their unique customer ID.</span></li>
+          <li><strong>Coming back</strong><span>A customer came back if they ordered on a later day than their first order, within 180 days. Several orders on one day count as one trip. Only customers with a full 180 days of follow-up are counted.</span></li>
+          <li><strong>Only reviewers</strong><span>Review scores come from customers who chose to write one. Customers with a bad experience may be more likely to review.</span></li>
+          <li><strong>Correlation, not proof</strong><span>Late orders go with low scores, but the data cannot show that lateness caused them. Late orders may also involve damaged goods or distant sellers.</span></li>
+          <li><strong>Old data in reais</strong><span>Orders are from 2016 to 2018 and prices are Brazilian reais, so this is a picture of that period.</span></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Source: Brazilian E-Commerce Public Dataset by Olist, on Kaggle, licensed CC BY-NC-SA 4.0. The data is real but anonymized, and store and partner names were replaced.</p>
+    <p>Analysis: SQL in DuckDB, checked independently in pandas. Medians, shares and correlations are computed as described under each chart.</p>
+  </footer>
+</div>
+
+<script src="vendor/d3.min.js"></script>
+<script>
+/* Small stand-in for the artifact runtime: loads dashboard_data/*.csv and re-runs the drawings. */
+const dash = (() => {
+  const SOURCES = ['headline','monthly','categories','states','days_vs_estimate','review_by_lateness','late_effect','retention_cohorts','retention_first','seller_curve','sellers'];
+  const store = {};
+  const draws = {};
+  SOURCES.forEach((id) => { store[id] = { status: 'loading', data: null }; });
+  function run(name) {
+    document.querySelectorAll('[data-draw="' + name + '"]').forEach((el) => { try { draws[name](el); } catch (e) { console.error(name, e); } });
+  }
+  function runAll() { Object.keys(draws).forEach(run); }
+  return {
+    data(id) { return store[id] || { status: 'missing', data: null }; },
+    draw(name, fn) { if (fn) { draws[name] = fn; } else if (draws[name]) { run(name); } },
+    setLink(id) { try { history.replaceState(null, '', '#' + id); } catch (e) {} },
+    start() {
+      const loads = SOURCES.map((id) => d3.csv('dashboard_data/' + id.replace('days_vs_estimate','days_vs_estimate') + '.csv')
+        .then((rows) => { store[id] = { status: 'ok', data: rows }; })
+        .catch(() => { store[id] = { status: 'error', data: null }; }));
+      Promise.all(loads).then(() => {
+        const go = () => { runAll(); const h = location.hash.slice(1); if (h) { const t = document.getElementById(h); if (t) t.scrollIntoView(); } };
+        (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(go);
+        let timer; let lastW = window.innerWidth;
+        window.addEventListener('resize', () => { if (window.innerWidth === lastW) return; lastW = window.innerWidth; clearTimeout(timer); timer = setTimeout(runAll, 200); });
+      });
+    },
+  };
+})();
+
+const nf = d3.format(',');
+const f1 = d3.format('.1f');
+const f2 = d3.format('.2f');
+const cN = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
+const INK = '#141a2b', MUTE = '#5a6580', RULE = '#dfe4ee', DIM = '#aab6cc', BLUE = '#1f5fd1', DEEP = '#17408f', AMBER = '#e08a00', AMBERT = '#b86500', BG = '#ffffff';
+const FM = {
+  text: (v) => String(v), int: (v) => nf(Math.round(+v)), compact: (v) => cN.format(+v),
+  pct: (v) => f1(+v) + '%', brl: (v) => 'R$ ' + cN.format(+v), days: (v) => f1(+v).replace(/\.0$/, '') + ' days', daysS: (v) => f1(+v) + ' d', score: (v) => f2(+v),
+};
+const STATE = { SP: 'São Paulo', RJ: 'Rio de Janeiro', MG: 'Minas Gerais', RS: 'Rio Grande do Sul', PR: 'Paraná', SC: 'Santa Catarina', BA: 'Bahia', DF: 'Distrito Federal', GO: 'Goiás', ES: 'Espírito Santo', PE: 'Pernambuco', CE: 'Ceará', PA: 'Pará', MT: 'Mato Grosso', MA: 'Maranhão', PB: 'Paraíba', MS: 'Mato Grosso do Sul' };
+/* rough position of each state on a grid, north at the top */
+const TILE = { PA: [0, 0], MA: [1, 0], CE: [2, 0], PB: [3, 0], MT: [0, 1], GO: [1, 1], BA: [2, 1], PE: [3, 1], MS: [0, 2], DF: [1, 2], MG: [2, 2], ES: [3, 2], PR: [0, 3], SP: [1, 3], RJ: [2, 3], RS: [0, 4], SC: [1, 4] };
+const prettyCat = (c) => { const t = c.replace(/_/g, ' '); return t.charAt(0).toUpperCase() + t.slice(1); };
+const monthDate = (m) => new Date(m + '-01T00:00:00Z');
+const monthLabel = (m) => d3.utcFormat('%b %Y')(monthDate(m));
+const lateColor = d3.scaleLinear().domain([0, 0.5, 1]).range([DEEP, '#dde5f4', AMBER]).clamp(true);
+const onFill = (c) => (d3.lab(c).l > 62 ? '#141a2b' : '#ffffff');
+const scoreColor = (s) => (s >= 4 ? BLUE : s >= 3 ? DIM : AMBER);
+const trunc = (s, px, fs) => { const n = Math.max(1, Math.floor(px / (fs * 0.56))); return s.length <= n ? s : s.slice(0, Math.max(1, n - 1)) + '…'; };
+function relax(list, gap, lo, hi) {
+  const s = list.slice().sort((a, b) => a.y - b.y);
+  s.forEach((d, i) => { d.ly = i === 0 ? Math.max(lo, d.y) : Math.max(d.y, s[i - 1].ly + gap); });
+  if (s.length && s[s.length - 1].ly > hi) { s[s.length - 1].ly = hi; for (let i = s.length - 2; i >= 0; i--) s[i].ly = Math.min(s[i].ly, s[i + 1].ly - gap); }
+}
+let gradN = 0;
+
+function failLine(tag) {
+  const d = document.createElement('div'); d.className = 'fail'; d.textContent = 'Failed to load';
+  if (tag === 'TBODY') { const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 8; td.appendChild(d); tr.appendChild(td); return tr; }
+  return d;
+}
+function ready(el, ids) {
+  const gs = ids.map((id) => dash.data(id));
+  if (gs.some((g) => ['error', 'connect', 'declined', 'missing'].includes(g.status))) { el.classList.remove('dash-skeleton'); el.replaceChildren(failLine(el.tagName)); return null; }
+  if (gs.some((g) => g.status !== 'ok')) return null;
+  el.classList.remove('dash-skeleton'); el.replaceChildren();
+  return gs.map((g) => g.data);
+}
+function makeTip(host) {
+  const t = document.createElement('div'); t.className = 'tip'; t.hidden = true; host.appendChild(t);
+  return {
+    show(ev, title, lines) {
+      t.replaceChildren();
+      const a = document.createElement('div'); a.className = 'tip-t'; a.textContent = title; t.appendChild(a);
+      for (const l of lines) { const d = document.createElement('div'); d.textContent = l; t.appendChild(d); }
+      t.hidden = false;
+      const r = host.getBoundingClientRect();
+      let x = ev.clientX - r.left + 12; const y = ev.clientY - r.top + 14; const w = t.offsetWidth;
+      if (x + w > r.width) x = Math.max(0, r.width - w - 4);
+      t.style.left = x + 'px'; t.style.top = y + 'px';
+    },
+    hide() { t.hidden = true; },
+  };
+}
+const widthOf = (el, min) => Math.max(min || 300, el.clientWidth || 640);
+function svgIn(el, W, H, label) { return d3.select(el).append('svg').attr('class', 'fig-svg').attr('viewBox', `0 0 ${W} ${H}`).attr('width', '100%').attr('role', 'img').attr('aria-label', label); }
+function textW(svg, txt, fs) { const t = svg.append('text').attr('font-size', fs).text(txt); const w = t.node().getComputedTextLength(); t.remove(); return w; }
+function gridY(svg, y, ticks, x0, x1, fmt) {
+  ticks.forEach((t) => {
+    svg.append('line').attr('x1', x0).attr('x2', x1).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', RULE);
+    svg.append('text').attr('x', x0 - 8).attr('y', y(t) + 4).attr('text-anchor', 'end').attr('font-size', 11).attr('fill', MUTE).text(fmt(t));
+  });
+}
+
+/* numbers and words */
+dash.draw('val', (el) => {
+  const g = dash.data(el.dataset.source);
+  if (g.status !== 'ok') { el.textContent = '—'; return; }
+  let row = g.data[0];
+  if (el.dataset.where) { const [c, v] = el.dataset.where.split('='); row = g.data.find((r) => r[c] === decodeURIComponent(v)); }
+  if (!row) { el.textContent = '—'; return; }
+  el.classList.remove('dash-skeleton');
+  el.textContent = (FM[el.dataset.fmt] || FM.text)(row[el.dataset.field]);
+});
+
+/* side index */
+document.querySelectorAll('.ol nav a[data-go]').forEach((a) => {
+  a.addEventListener('click', (ev) => {
+    ev.preventDefault();
+    const t = document.getElementById(a.dataset.go);
+    if (t) { t.scrollIntoView({ behavior: 'smooth' }); dash.setLink(t.id); }
+  });
+});
+(() => {
+  const links = new Map();
+  document.querySelectorAll('.ol nav a[data-go]').forEach((a) => links.set(a.dataset.go, a));
+  let io;
+  const opts = { rootMargin: '-25% 0px -65% 0px' };
+  try { io = new IntersectionObserver(onHit, Object.assign({ root: document }, opts)); } catch (e) { io = new IntersectionObserver(onHit, opts); }
+  function onHit(entries) {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      links.forEach((a, id) => a.classList.toggle('on', id === en.target.id));
+    });
+  }
+  links.forEach((a, id) => { const s = document.getElementById(id); if (s) io.observe(s); });
+})();
+
+/* orders per month */
+dash.draw('monthLine', (el) => {
+  const r = ready(el, ['monthly']); if (!r) return;
+  const rows = r[0].map((d) => ({ m: d.month, t: monthDate(d.month), n: +d.orders, rev: +d.revenue_brl }));
+  const W = widthOf(el, 320), H = 300, m = { l: 46, r: 14, t: 28, b: 30 };
+  const svg = svgIn(el, W, H, 'Orders per month');
+  const x = d3.scaleUtc().domain(d3.extent(rows, (d) => d.t)).range([m.l, W - m.r]);
+  const y = d3.scaleLinear().domain([0, d3.max(rows, (d) => d.n)]).nice().range([H - m.b, m.t]);
+  gridY(svg, y, y.ticks(4), m.l, W - m.r, (v) => cN.format(v));
+  const id = 'mg' + (++gradN);
+  const lg = svg.append('defs').append('linearGradient').attr('id', id).attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 1);
+  [[0, 0.35], [0.5, 0.12], [1, 0]].forEach(([o, a]) => lg.append('stop').attr('offset', o).attr('style', `stop-color:${BLUE};stop-opacity:${a}`));
+  svg.append('path').attr('d', d3.area().x((d) => x(d.t)).y0(y(0)).y1((d) => y(d.n))(rows)).attr('fill', `url(#${id})`);
+  svg.append('path').attr('d', d3.line().x((d) => x(d.t)).y((d) => y(d.n))(rows)).attr('fill', 'none').attr('stroke', BLUE).attr('stroke-width', 2.5).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
+  const step = W < 520 ? 6 : 3;
+  rows.forEach((d, i) => { if (i % step === 0) svg.append('text').attr('x', x(d.t)).attr('y', H - 8).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', MUTE).text(d3.utcFormat('%b %y')(d.t)); });
+  const pk = rows.reduce((a, b) => (b.n > a.n ? b : a));
+  svg.append('circle').attr('cx', x(pk.t)).attr('cy', y(pk.n)).attr('r', 5).attr('fill', BLUE);
+  svg.append('text').attr('x', Math.min(W - m.r, Math.max(m.l + 60, x(pk.t))) ).attr('y', y(pk.n) - 12).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 700).attr('fill', BLUE).text(nf(pk.n) + ' in ' + monthLabel(pk.m));
+  const dot = svg.append('circle').attr('r', 4.5).attr('fill', INK).attr('stroke', BG).attr('stroke-width', 2).attr('visibility', 'hidden');
+  const tip = makeTip(el);
+  svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+    .on('mousemove', (ev) => {
+      const b = svg.node().getBoundingClientRect(); const px = (ev.clientX - b.left) * (W / b.width);
+      const d = rows.reduce((a, c) => (Math.abs(x(c.t) - px) < Math.abs(x(a.t) - px) ? c : a));
+      dot.attr('cx', x(d.t)).attr('cy', y(d.n)).attr('visibility', 'visible');
+      tip.show(ev, monthLabel(d.m), [nf(d.n) + ' orders', 'R$ ' + nf(d.rev) + ' revenue (delivered)']);
+    }).on('mouseleave', () => { tip.hide(); dot.attr('visibility', 'hidden'); });
+});
+
+/* category treemap */
+dash.draw('catTree', (el) => {
+  const r = ready(el, ['categories']); if (!r) return;
+  const rows = r[0].map((d) => ({ c: d.category, rev: +d.revenue_brl, p: +d.pct_of_revenue, late: +d.pct_late, s: +d.avg_score, n: +d.orders }));
+  const W = widthOf(el, 320), H = W < 520 ? 460 : 400;
+  const svg = svgIn(el, W, H + 34, 'Revenue by category, colored by late share');
+  const ext = d3.extent(rows, (d) => d.late);
+  const col = (v) => lateColor((v - ext[0]) / (ext[1] - ext[0] || 1));
+  const root = d3.hierarchy({ children: rows }).sum((d) => d.rev || 0).sort((a, b) => b.value - a.value);
+  d3.treemap().size([W, H]).paddingInner(3).round(true)(root);
+  const tip = makeTip(el);
+  const g = svg.append('g').attr('transform', 'translate(0,34)');
+  const id = 'tg' + (++gradN);
+  const lg = svg.append('defs').append('linearGradient').attr('id', id).attr('x1', 0).attr('x2', 1);
+  d3.range(0, 1.01, 0.25).forEach((t) => lg.append('stop').attr('offset', t).attr('stop-color', lateColor(t)));
+  svg.append('text').attr('x', 0).attr('y', 11).attr('font-size', 11).attr('fill', MUTE).text(f1(ext[0]) + '% late');
+  const lw = 140; svg.append('rect').attr('x', 66).attr('y', 3).attr('width', lw).attr('height', 9).attr('rx', 2).attr('fill', `url(#${id})`);
+  svg.append('text').attr('x', 66 + lw + 8).attr('y', 11).attr('font-size', 11).attr('fill', MUTE).text(f1(ext[1]) + '% late');
+  root.leaves().forEach((n) => {
+    const d = n.data, w = n.x1 - n.x0, h = n.y1 - n.y0, c = col(d.late);
+    const cell = g.append('g').attr('transform', `translate(${n.x0},${n.y0})`);
+    cell.append('rect').attr('width', w).attr('height', h).attr('rx', 3).attr('fill', c)
+      .on('mousemove', (ev) => tip.show(ev, prettyCat(d.c), ['R$ ' + nf(d.rev) + ' revenue (' + f1(d.p) + '%)', nf(d.n) + ' orders', f1(d.late) + '% late, score ' + f2(d.s)])).on('mouseleave', () => tip.hide());
+    if (w > 64 && h > 34) {
+      const fs = w > 150 && h > 70 ? 14 : 11.5;
+      cell.append('text').attr('x', 8).attr('y', 8 + fs).attr('font-size', fs).attr('font-weight', 700).attr('fill', onFill(c)).attr('pointer-events', 'none').text(trunc(prettyCat(d.c), w - 14, fs));
+      cell.append('text').attr('x', 8).attr('y', 10 + fs * 2).attr('font-size', 11).attr('fill', onFill(c)).attr('fill-opacity', 0.8).attr('pointer-events', 'none').text(f1(d.p) + '%');
+    }
+  });
+});
+
+dash.draw('catBody', (tb) => {
+  const r = ready(tb, ['categories']); if (!r) return;
+  r[0].slice().sort((a, b) => +b.revenue_brl - +a.revenue_brl).forEach((d) => {
+    const tr = document.createElement('tr');
+    [prettyCat(d.category), nf(+d.orders), 'R$ ' + nf(+d.revenue_brl), f1(+d.pct_of_revenue) + '%', f1(+d.pct_late) + '%', f2(+d.avg_score), f1(+d.freight_pct_of_price) + '%'].forEach((t) => { const td = document.createElement('td'); td.textContent = t; tr.appendChild(td); });
+    tr.dataset.key = d.category; tb.appendChild(tr);
+  });
+});
+
+/* days against the estimate */
+dash.draw('daysArea', (el) => {
+  const r = ready(el, ['days_vs_estimate']); if (!r) return;
+  const rows = r[0].map((d) => ({ d: +d.days_vs_estimate, n: +d.orders }));
+  const tot = d3.sum(rows, (d) => d.n), late = d3.sum(rows.filter((d) => d.d > 0), (d) => d.n);
+  const W = widthOf(el, 320), H = 320, m = { l: 46, r: 10, t: 36, b: 34 };
+  const svg = svgIn(el, W, H, 'Delivered orders against the estimated date');
+  const x = d3.scaleLinear().domain([-30.5, 30.5]).range([m.l, W - m.r]);
+  const y = d3.scaleLinear().domain([0, d3.max(rows, (d) => d.n)]).nice().range([H - m.b, m.t]);
+  gridY(svg, y, y.ticks(4), m.l, W - m.r, (v) => cN.format(v));
+  const bw = (x(1) - x(0)) * 0.92;
+  const tip = makeTip(el);
+  const lab = (d) => (d <= -30 ? '30 or more days early' : d >= 30 ? '30 or more days late' : d === 0 ? 'On the estimated day' : d < 0 ? Math.abs(d) + (d === -1 ? ' day early' : ' days early') : d + (d === 1 ? ' day late' : ' days late'));
+  svg.selectAll('rect.b').data(rows).join('rect').attr('class', 'b').attr('x', (d) => x(d.d) - bw / 2).attr('width', bw).attr('y', (d) => y(d.n)).attr('height', (d) => y(0) - y(d.n))
+    .attr('fill', (d) => (d.d > 0 ? AMBER : BLUE)).on('mousemove', (ev, d) => tip.show(ev, lab(d.d), [nf(d.n) + ' orders'])).on('mouseleave', () => tip.hide());
+  [-30, -20, -10, 0, 10, 20, 30].forEach((t) => svg.append('text').attr('x', x(t)).attr('y', H - m.b + 16).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', MUTE).text(t === 0 ? 'estimated day' : t < 0 ? (t === -30 ? '30+ days early' : Math.abs(t)) : (t === 30 ? '30+ late' : t)));
+  svg.append('line').attr('x1', x(0.5)).attr('x2', x(0.5)).attr('y1', m.t - 12).attr('y2', H - m.b).attr('stroke', INK).attr('stroke-dasharray', '3 3');
+  svg.append('text').attr('x', x(0.5) - 8).attr('y', m.t - 18).attr('text-anchor', 'end').attr('font-size', 12).attr('font-weight', 700).attr('fill', BLUE).text(f1(100 - 100 * late / tot) + '% on time or early');
+  svg.append('text').attr('x', x(0.5) + 8).attr('y', m.t - 18).attr('font-size', 12).attr('font-weight', 700).attr('fill', AMBERT).text(f1(100 * late / tot) + '% late');
+});
+
+/* tile map of states */
+dash.draw('stateTiles', (el) => {
+  const r = ready(el, ['states']); if (!r) return;
+  const rows = r[0].map((d) => ({ s: d.state, days: +d.median_delivery_days, late: +d.pct_late, n: +d.orders, fr: +d.freight_pct_of_price })).filter((d) => TILE[d.s]);
+  const W = widthOf(el, 320), g = 8, cols = 4, tw = (W - g * (cols - 1)) / cols, th = Math.min(104, tw * 0.78), H = 5 * th + 4 * g;
+  const svg = svgIn(el, W, H, 'Delivery by state, as a tile map');
+  const ext = d3.extent(rows, (d) => d.late), col = (v) => lateColor((v - ext[0]) / (ext[1] - ext[0] || 1));
+  const tip = makeTip(el);
+  rows.forEach((d) => {
+    const [cx, cy] = TILE[d.s], c = col(d.late), tc = onFill(c);
+    const gg = svg.append('g').attr('transform', `translate(${cx * (tw + g)},${cy * (th + g)})`);
+    gg.append('rect').attr('width', tw).attr('height', th).attr('rx', 6).attr('fill', c)
+      .on('mousemove', (ev) => tip.show(ev, d.s + ' ' + STATE[d.s], [nf(d.n) + ' delivered orders', f1(d.days) + ' days typical delivery', f1(d.late) + '% late', 'Shipping fee is ' + f1(d.fr) + '% of item price'])).on('mouseleave', () => tip.hide());
+    gg.append('text').attr('x', 10).attr('y', 22).attr('font-size', 13).attr('font-weight', 700).attr('fill', tc).attr('pointer-events', 'none').text(d.s);
+    gg.append('text').attr('x', 10).attr('y', th - 28).attr('font-size', th > 70 ? 26 : 20).attr('font-family', 'Instrument Serif, serif').attr('fill', tc).attr('pointer-events', 'none').text(f1(d.days) + ' d');
+    gg.append('text').attr('x', 10).attr('y', th - 10).attr('font-size', 11).attr('fill', tc).attr('fill-opacity', 0.85).attr('pointer-events', 'none').text(f1(d.late) + '% late');
+  });
+  const lx = 3 * (tw + g) + 4, ly = 3 * (th + g) + 8;
+  const id = 'sg' + (++gradN);
+  const lg = svg.append('defs').append('linearGradient').attr('id', id).attr('x1', 0).attr('x2', 1);
+  d3.range(0, 1.01, 0.25).forEach((t) => lg.append('stop').attr('offset', t).attr('stop-color', lateColor(t)));
+  svg.append('text').attr('x', lx).attr('y', ly + 10).attr('font-size', 11).attr('fill', MUTE).text('Share late');
+  svg.append('rect').attr('x', lx).attr('y', ly + 18).attr('width', tw - 8).attr('height', 9).attr('rx', 2).attr('fill', `url(#${id})`);
+  svg.append('text').attr('x', lx).attr('y', ly + 42).attr('font-size', 11).attr('fill', MUTE).text(f1(ext[0]) + '%');
+  svg.append('text').attr('x', lx + tw - 8).attr('y', ly + 42).attr('text-anchor', 'end').attr('font-size', 11).attr('fill', MUTE).text(f1(ext[1]) + '%');
+});
+
+/* review score by lateness */
+dash.draw('latenessLine', (el) => {
+  const r = ready(el, ['review_by_lateness']); if (!r) return;
+  const rows = r[0].map((d) => ({ ord: +d.ord, b: d.bucket, n: +d.reviewed_orders, s: +d.avg_score, one: +d.pct_one_star, five: +d.pct_five_star })).sort((a, b) => a.ord - b.ord);
+  const W = widthOf(el, 320), H = 330, m = { l: 40, r: 16, t: 30, b: 58 };
+  const svg = svgIn(el, W, H, 'Average review score by lateness');
+  const x = d3.scalePoint().domain(rows.map((d) => d.ord)).range([m.l + 26, W - m.r - 26]);
+  const y = d3.scaleLinear().domain([1, 5]).range([H - m.b, m.t]);
+  gridY(svg, y, [1, 2, 3, 4, 5], m.l, W - m.r, (v) => v);
+  const mid = (x(3) + x(4)) / 2;
+  svg.append('rect').attr('x', mid).attr('y', m.t - 8).attr('width', W - m.r - mid).attr('height', H - m.b - m.t + 8).attr('fill', AMBER).attr('fill-opacity', 0.09);
+  svg.append('text').attr('x', mid + 8).attr('y', m.t + 6).attr('font-size', 11).attr('font-weight', 700).attr('fill', AMBERT).text('LATE');
+  svg.append('path').attr('d', d3.line().x((d) => x(d.ord)).y((d) => y(d.s))(rows)).attr('fill', 'none').attr('stroke', MUTE).attr('stroke-width', 2).attr('stroke-linejoin', 'round');
+  const tip = makeTip(el);
+  const step = x(2) - x(1), per = Math.max(7, Math.floor(step / 8.6));
+  rows.forEach((d) => {
+    svg.append('circle').attr('cx', x(d.ord)).attr('cy', y(d.s)).attr('r', 8).attr('fill', scoreColor(d.s)).attr('stroke', BG).attr('stroke-width', 2)
+      .on('mousemove', (ev) => tip.show(ev, d.b, [nf(d.n) + ' reviewed orders', 'Average score ' + f2(d.s), f1(d.one) + '% gave one star', f1(d.five) + '% gave five stars'])).on('mouseleave', () => tip.hide());
+    svg.append('text').attr('x', x(d.ord)).attr('y', y(d.s) - 15).attr('text-anchor', 'middle').attr('font-size', 12.5).attr('font-weight', 700).attr('fill', INK).attr('pointer-events', 'none').text(f2(d.s));
+    const words = d.b.split(' '); const lines = []; let cur = '';
+    words.forEach((w) => { if ((cur + ' ' + w).trim().length > per && cur) { lines.push(cur); cur = w; } else cur = (cur + ' ' + w).trim(); });
+    if (cur) lines.push(cur);
+    lines.forEach((ln, i) => svg.append('text').attr('x', x(d.ord)).attr('y', H - m.b + 20 + i * 14).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', MUTE).text(ln));
+  });
+});
+
+/* on-time versus late score, by category */
+dash.draw('gapSlope', (el) => {
+  const r = ready(el, ['late_effect']); if (!r) return;
+  const rows = r[0].map((d) => ({ name: prettyCat(d.category), on: +d.ontime_score, la: +d.late_score, n: +d.reviewed_orders, late: +d.late_orders })).sort((a, b) => b.n - a.n);
+  const W = widthOf(el, 320), H = 440, m = { l: 34, r: W < 480 ? 130 : 190, t: 40, b: 14 };
+  const svg = svgIn(el, W, H, 'Average review for on-time and late orders by category');
+  const xL = m.l + 30, xR = Math.min(W - m.r, xL + 420);
+  const y = d3.scaleLinear().domain([1.8, 4.6]).range([H - m.b, m.t]);
+  [2, 3, 4].forEach((t) => {
+    svg.append('line').attr('x1', xL - 12).attr('x2', xR + 12).attr('y1', y(t)).attr('y2', y(t)).attr('stroke', RULE);
+    svg.append('text').attr('x', xL - 20).attr('y', y(t) + 4).attr('text-anchor', 'end').attr('font-size', 11).attr('fill', MUTE).text(t + ' stars');
+  });
+  svg.append('text').attr('x', xL).attr('y', 14).attr('text-anchor', 'middle').attr('font-size', 12).attr('font-weight', 700).attr('fill', BLUE).text('On time or early');
+  svg.append('text').attr('x', xR).attr('y', 14).attr('text-anchor', 'start').attr('font-size', 12).attr('font-weight', 700).attr('fill', AMBERT).text('Late');
+  const tip = makeTip(el);
+  const lab = rows.map((d) => ({ d, y: y(d.la) })); relax(lab, 16, m.t, H - m.b);
+  const ly = new Map(lab.map((o) => [o.d.name, o.ly]));
+  rows.forEach((d) => {
+    svg.append('line').attr('x1', xL).attr('x2', xR).attr('y1', y(d.on)).attr('y2', y(d.la)).attr('stroke', AMBER).attr('stroke-opacity', 0.55).attr('stroke-width', 2)
+      .on('mousemove', (ev) => tip.show(ev, d.name, [nf(d.n) + ' reviewed orders, ' + nf(d.late) + ' late', 'On time ' + f2(d.on) + ' stars', 'Late ' + f2(d.la) + ' stars'])).on('mouseleave', () => tip.hide());
+    svg.append('circle').attr('cx', xL).attr('cy', y(d.on)).attr('r', 4.5).attr('fill', BLUE);
+    svg.append('circle').attr('cx', xR).attr('cy', y(d.la)).attr('r', 4.5).attr('fill', AMBER);
+    const yy = ly.get(d.name);
+    svg.append('text').attr('x', xR + 12).attr('y', yy + 4).attr('font-size', 11.5).attr('fill', INK).text(trunc(d.name, m.r - 50, 11.5) + '  ' + f2(d.la));
+  });
+});
+
+/* return rate by first month */
+dash.draw('cohortLine', (el) => {
+  const r = ready(el, ['retention_cohorts', 'headline']); if (!r) return;
+  const rows = r[0].map((d) => ({ m: d.cohort, t: monthDate(d.cohort), n: +d.customers, back: +d.came_back, p: +d.pct_came_back }));
+  const avg = +r[1][0].pct_came_back;
+  const W = widthOf(el, 320), H = 300, m = { l: 40, r: 12, t: 28, b: 30 };
+  const svg = svgIn(el, W, H, 'Return rate by month of first order');
+  const x = d3.scaleUtc().domain(d3.extent(rows, (d) => d.t)).range([m.l + 6, W - m.r - 6]);
+  const y = d3.scaleLinear().domain([0, 4]).range([H - m.b, m.t]);
+  gridY(svg, y, [0, 1, 2, 3, 4], m.l, W - m.r, (v) => v + '%');
+  svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(avg)).attr('y2', y(avg)).attr('stroke', AMBER).attr('stroke-dasharray', '4 3');
+  svg.append('line').attr('x1', m.l).attr('x2', m.l + 22).attr('y1', 8).attr('y2', 8).attr('stroke', AMBER).attr('stroke-dasharray', '4 3');
+  svg.append('text').attr('x', m.l + 28).attr('y', 12).attr('font-size', 11).attr('font-weight', 700).attr('fill', AMBERT).text('overall ' + f1(avg) + '%');
+  svg.append('path').attr('d', d3.line().x((d) => x(d.t)).y((d) => y(d.p))(rows)).attr('fill', 'none').attr('stroke', BLUE).attr('stroke-width', 2.5).attr('stroke-linejoin', 'round');
+  const tip = makeTip(el);
+  svg.selectAll('circle.p').data(rows).join('circle').attr('class', 'p').attr('cx', (d) => x(d.t)).attr('cy', (d) => y(d.p)).attr('r', 5).attr('fill', BLUE).attr('stroke', BG).attr('stroke-width', 2)
+    .on('mousemove', (ev, d) => tip.show(ev, monthLabel(d.m), [nf(d.n) + ' new customers', nf(d.back) + ' came back (' + f2(d.p) + '%)'])).on('mouseleave', () => tip.hide());
+  const step = W < 520 ? 4 : 3;
+  rows.forEach((d, i) => { if (i % step === 0) svg.append('text').attr('x', x(d.t)).attr('y', H - 8).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', MUTE).text(d3.utcFormat('%b %y')(d.t)); });
+});
+
+/* return rate by first experience */
+dash.draw('firstBars', (el) => {
+  const r = ready(el, ['retention_first']); if (!r) return;
+  const by = d3.group(r[0], (d) => d.first_review);
+  const order = ['1 to 2 stars', '3 stars', '4 to 5 stars'];
+  const groups = order.filter((k) => by.has(k)).map((k) => { const g = by.get(k); const on = g.find((d) => d.first_delivery.startsWith('On time')); const la = g.find((d) => d.first_delivery === 'Late'); return { k, on: +on.pct_came_back, la: +la.pct_came_back, nOn: +on.customers, nLa: +la.customers }; });
+  const W = widthOf(el, 320), gh = 86, m = { l: 0, r: 130, t: 6, b: 6 }, H = m.t + m.b + gh * groups.length;
+  const svg = svgIn(el, W, H, 'Return rate by first review and first delivery');
+  const x = d3.scaleLinear().domain([0, 3]).range([0, W - m.r]);
+  const tip = makeTip(el);
+  groups.forEach((g, i) => {
+    const y0 = m.t + i * gh;
+    svg.append('text').attr('x', 0).attr('y', y0 + 14).attr('font-size', 12.5).attr('font-weight', 700).attr('fill', INK).text('First review: ' + g.k);
+    [['On time', g.on, g.nOn, BLUE, 24], ['Late', g.la, g.nLa, AMBER, 50]].forEach(([nm, v, n, c, dy]) => {
+      svg.append('rect').attr('x', 0).attr('y', y0 + dy).attr('width', Math.max(2, x(v))).attr('height', 18).attr('rx', 3).attr('fill', c)
+        .on('mousemove', (ev) => tip.show(ev, 'First review ' + g.k + ', ' + nm.toLowerCase(), [f2(v) + '% came back', nf(n) + ' customers'])).on('mouseleave', () => tip.hide());
+      svg.append('text').attr('x', x(v) + 8).attr('y', y0 + dy + 13).attr('font-size', 12).attr('fill', INK).text(f2(v) + '%  ' + nm.toLowerCase());
+    });
+  });
+});
+
+/* revenue by group of sellers */
+dash.draw('deciles', (el) => {
+  const r = ready(el, ['seller_curve']); if (!r) return;
+  const at = new Map(r[0].map((d) => [+d.pct_sellers, +d.pct_revenue]));
+  const rows = d3.range(10).map((i) => ({ i, v: at.get((i + 1) * 10) - at.get(i * 10) }));
+  const W = widthOf(el, 320), H = 320, m = { l: 40, r: 8, t: 28, b: 46 };
+  const svg = svgIn(el, W, H, 'Share of revenue earned by each tenth of sellers');
+  const x = d3.scaleBand().domain(rows.map((d) => d.i)).range([m.l, W - m.r]).paddingInner(0.2);
+  const y = d3.scaleLinear().domain([0, 75]).range([H - m.b, m.t]);
+  gridY(svg, y, [0, 25, 50, 75], m.l, W - m.r, (v) => v + '%');
+  const tip = makeTip(el);
+  const nth = (i) => (i === 0 ? 'Top 10%' : i === 1 ? 'Next 10%' : 'Group ' + (i + 1));
+  rows.forEach((d) => {
+    svg.append('rect').attr('x', x(d.i)).attr('width', x.bandwidth()).attr('y', y(d.v)).attr('height', y(0) - y(d.v)).attr('rx', 2).attr('fill', d.i === 0 ? BLUE : DIM)
+      .on('mousemove', (ev) => tip.show(ev, nth(d.i) + ' of sellers by revenue', [f1(d.v) + '% of all revenue'])).on('mouseleave', () => tip.hide());
+    svg.append('text').attr('x', x(d.i) + x.bandwidth() / 2).attr('y', y(d.v) - 6).attr('text-anchor', 'middle').attr('font-size', 11.5).attr('font-weight', d.i === 0 ? 700 : 500).attr('fill', d.i === 0 ? BLUE : MUTE).attr('pointer-events', 'none').text(f1(d.v) + '%');
+    svg.append('text').attr('x', x(d.i) + x.bandwidth() / 2).attr('y', H - m.b + 16).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', MUTE).text(d.i + 1);
+  });
+  svg.append('text').attr('x', (m.l + W - m.r) / 2).attr('y', H - 6).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', MUTE).text('group of sellers, from highest revenue (1) to lowest (10)');
+});
+
+/* sellers grouped by late share */
+dash.draw('lateBands', (el) => {
+  const r = ready(el, ['sellers']); if (!r) return;
+  const bands = [['Under 5% late', 0, 5], ['5 to 10% late', 5, 10], ['10 to 15% late', 10, 15], ['15 to 25% late', 15, 25], ['25% or more', 25, 1000]];
+  const rows = bands.map(([name, lo, hi]) => {
+    const s = r[0].filter((d) => +d.pct_late >= lo && +d.pct_late < hi);
+    return { name, n: s.length, avg: d3.mean(s, (d) => +d.avg_score) };
+  }).filter((d) => d.n > 0);
+  const W = widthOf(el, 320), rh = 50, m = { l: 0, r: 8, t: 6, b: 24 }, H = m.t + m.b + rh * rows.length;
+  const svg = svgIn(el, W, H, 'Average seller review score by late share');
+  m.l = d3.max(rows, (d) => textW(svg, d.name, 12)) + 14;
+  const x = d3.scaleLinear().domain([0, 5]).range([m.l, W - m.r]);
+  [0, 1, 2, 3, 4, 5].forEach((t) => {
+    svg.append('line').attr('x1', x(t)).attr('x2', x(t)).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', RULE);
+    svg.append('text').attr('x', x(t)).attr('y', H - 6).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', MUTE).text(t);
+  });
+  const tip = makeTip(el);
+  rows.forEach((d, i) => {
+    const y = m.t + i * rh;
+    svg.append('text').attr('x', m.l - 10).attr('y', y + rh / 2 + 4).attr('text-anchor', 'end').attr('font-size', 12).attr('fill', INK).text(d.name);
+    svg.append('rect').attr('x', m.l).attr('y', y + 9).attr('width', x(d.avg) - m.l).attr('height', rh - 18).attr('rx', 3).attr('fill', scoreColor(d.avg))
+      .on('mousemove', (ev) => tip.show(ev, d.name, [nf(d.n) + ' sellers', 'Average score ' + f2(d.avg)])).on('mouseleave', () => tip.hide());
+    svg.append('text').attr('x', x(d.avg) - 8).attr('y', y + rh / 2 + 1).attr('text-anchor', 'end').attr('font-size', 13).attr('font-weight', 700).attr('fill', onFill(scoreColor(d.avg))).attr('pointer-events', 'none').text(f2(d.avg));
+    svg.append('text').attr('x', x(d.avg) - 8).attr('y', y + rh / 2 + 15).attr('text-anchor', 'end').attr('font-size', 10.5).attr('fill', onFill(scoreColor(d.avg))).attr('fill-opacity', 0.8).attr('pointer-events', 'none').text(nf(d.n) + ' sellers');
+  });
+});
+
+dash.start();
+</script>
+</body>
+</html>

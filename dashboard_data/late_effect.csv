@@ -1,0 +1,14 @@
+category,reviewed_orders,late_orders,ontime_score,late_score,score_gap
+bed_bath_table,9172,668,4.14,2.23,1.91
+health_beauty,8564,631,4.38,2.34,2.04
+sports_leisure,7468,487,4.37,2.17,2.2
+computers_accessories,6486,406,4.2,2.27,1.93
+furniture_decor,6212,440,4.19,2.33,1.86
+housewares,5700,300,4.3,2.26,2.04
+watches_gifts,5448,395,4.27,2.2,2.07
+telephony,4062,287,4.18,2.43,1.74
+auto,3783,273,4.29,2.31,1.98
+toys,3752,232,4.38,2.13,2.25
+cool_stuff,3524,205,4.34,2.25,2.09
+garden_tools,3423,221,4.31,2.33,1.98
+perfumery,3050,200,4.4,2.29,2.11

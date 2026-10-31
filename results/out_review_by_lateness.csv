@@ -1,0 +1,8 @@
+ord,bucket,reviewed_orders,avg_score,pct_one_star,pct_five_star
+1,More than 7 days early,70673,4.32,6.5,63.7
+2,1 to 7 days early,17229,4.2,7.1,57.5
+3,On the estimated day,1280,4.03,8.5,50.6
+4,1 to 3 days late,1851,3.29,25.1,33.2
+5,4 to 7 days late,1748,2.1,58.6,14.1
+6,8 to 14 days late,1446,1.67,70.6,6.8
+7,More than 14 days late,1333,1.72,68.9,7.2
