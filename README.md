@@ -59,3 +59,11 @@ python3 validate.py                # independent pandas check
 | `dashboard_data/` | The datasets behind the dashboard |
 
 Built with SQL (DuckDB), Python (pandas) and d3. Data: Olist, CC BY-NC-SA 4.0. The licence has a share-alike condition, so check its terms before reusing the result tables.
+
+## Tableau dashboard
+
+A second dashboard built in Tableau Public from one order-level file (99,092 orders, January 2017 to August 2018). It has four headline numbers, a map of late share by state, orders per month, review score by delivery timing, and revenue by product category. Clicking a state filters every chart.
+
+To rebuild the data file, run `python3 build.py` and then `python3 export_tableau_data.py`. The script writes `tableau_data/olist_orders_for_tableau.csv`, which Tableau reads.
+
+One difference from the web dashboard. In the Tableau file each order is counted in a single product category, the one with the most expensive item, so category revenue differs slightly from the web version (Health beauty is 1,230,239 here and 1,229,557 on the web dashboard).
