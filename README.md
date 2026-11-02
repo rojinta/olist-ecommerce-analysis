@@ -2,7 +2,7 @@
 
 An analysis of about 99,000 orders from Olist, a Brazilian online marketplace, placed from January 2017 to August 2018. It asks one question: **where does the marketplace earn its money, and what hurts customer satisfaction and repeat buying?**
 
-Dashboards: [Interactive web dashboard](https://rojinta.github.io/olist-ecommerce-analysis/) | [Tableau Public dashboard](https://public.tableau.com/app/profile/rojin.taheri/viz/OlistMarketplaceAnalysis/OlistMarketplaceAnalysis)
+**Dashboards: [Interactive web dashboard](https://rojinta.github.io/olist-ecommerce-analysis/) | [Tableau Public dashboard](https://public.tableau.com/app/profile/rojin.taheri/viz/OlistMarketplaceAnalysis/OlistMarketplaceAnalysis)**
 
 ## The short answer
 
